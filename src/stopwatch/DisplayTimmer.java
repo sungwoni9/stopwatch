@@ -1,9 +1,7 @@
 package stopwatch;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -11,11 +9,14 @@ import java.util.TimeZone;
 
 public class DisplayTimmer implements Runnable {
 
-	private int startTime;
-	private int elapsedTime;
+	private static int startTime;
+	private static int elapsedTime;
+	private static int minute;
+	private static int second;
+	private static int hour;
 
 	private static Calendar cal = Calendar.getInstance();
-	private TimeZone tz = TimeZone.getTimeZone("Asia/Seoul");
+	private static TimeZone tz = TimeZone.getTimeZone("Asia/Seoul");
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HH : mm : ss");
 
 	BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
@@ -24,6 +25,13 @@ public class DisplayTimmer implements Runnable {
 		startTime = (int) System.currentTimeMillis();
 		elapsedTime = 1;
 		sdf.setTimeZone(tz);
+		minute = cal.get(Calendar.MINUTE);
+		second = cal.get(Calendar.SECOND);
+		hour = cal.get(Calendar.HOUR);
+	}
+
+	public void start() {
+		run();
 	}
 
 	public static DisplayTimmer getInstance() {
@@ -36,20 +44,37 @@ public class DisplayTimmer implements Runnable {
 
 		try {
 			while (true) {
-				String currentTime = sdf.format(cal.getTime());
-				cal.setTimeInMillis(System.currentTimeMillis());
+				second++;
 
-				writer.write("\n" + currentTime + " [" + elapsedTime++ + "]");
+				if (second > 59) {
+					second = 0;
+					minute++;
+				}
+
+				if (minute > 59) {
+					minute = 0;
+					hour++;
+				}
+
+				if (hour > 12) {
+					hour = 0;
+				}
+
+				String currentTime = String.format("%02d : %02d : %02d [%d]", hour, minute, second, elapsedTime++);
+				System.out.println(currentTime);
+
 				writer.flush();
 
 				Thread.sleep(1000);
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			try {
 				writer.close();
-			} catch (Exception e2) {
+			} catch (IOException e) {
+				e.printStackTrace();
 
 			}
 
@@ -63,4 +88,5 @@ public class DisplayTimmer implements Runnable {
 	public void setStartTime(int startTime) {
 		this.startTime = startTime;
 	}
+
 }
