@@ -12,7 +12,7 @@ Stopwatch Game
 <br><br>
 
 ### Class Diagram
-![클래스다이어그램](https://github.com/SG5143/stopwatch/blob/main/resources/stopWatch.png)
+![클래스다이어그램](source/Stopwatch 다이어그램.drawio.png)
 
 <br><br>
 
