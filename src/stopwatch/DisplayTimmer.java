@@ -1,7 +1,9 @@
 package stopwatch;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -15,7 +17,7 @@ public class DisplayTimmer implements Runnable {
 	private static Calendar cal = Calendar.getInstance();
 	private TimeZone tz = TimeZone.getTimeZone("Asia/Seoul");
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HH : mm : ss");
-	
+
 	BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
 
 	public DisplayTimmer() {
@@ -31,6 +33,7 @@ public class DisplayTimmer implements Runnable {
 	}
 
 	public void run() {
+
 		try {
 			while (true) {
 				String currentTime = sdf.format(cal.getTime());
@@ -41,8 +44,15 @@ public class DisplayTimmer implements Runnable {
 
 				Thread.sleep(1000);
 			}
-		} catch (IOException | InterruptedException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				writer.close();
+			} catch (Exception e2) {
+
+			}
+
 		}
 	}
 
