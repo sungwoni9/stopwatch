@@ -9,7 +9,6 @@ import java.util.TimeZone;
 
 public class DisplayTimmer implements Runnable {
 
-	private static int startTime;
 	private static int elapsedTime;
 	private static int minute;
 	private static int second;
@@ -22,7 +21,6 @@ public class DisplayTimmer implements Runnable {
 	BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
 
 	public DisplayTimmer() {
-		startTime = (int) System.currentTimeMillis();
 		elapsedTime = 1;
 		sdf.setTimeZone(tz);
 		minute = cal.get(Calendar.MINUTE);
@@ -40,25 +38,53 @@ public class DisplayTimmer implements Runnable {
 
 	}
 
+	public static int getSecond() {
+		return second;
+	}
+
+	public static void setSecond(int second) {
+		DisplayTimmer.second = second;
+	}
+
+	public static int getMinute() {
+		return minute;
+	}
+
+	public static void setMinute(int minute) {
+		DisplayTimmer.minute = minute;
+	}
+
+	public static int getHour() {
+		return hour;
+	}
+
+	public static void setHour(int hour) {
+		DisplayTimmer.hour = hour;
+	}
+
+	public static void updateTime() {
+		second++;
+
+		if (second > 59) {
+			second = 0;
+			minute++;
+		}
+
+		if (minute > 59) {
+			minute = 0;
+			hour++;
+		}
+
+		if (hour > 12) {
+			hour = 0;
+		}
+	}
+
 	public void run() {
 
 		try {
 			while (true) {
-				second++;
-
-				if (second > 59) {
-					second = 0;
-					minute++;
-				}
-
-				if (minute > 59) {
-					minute = 0;
-					hour++;
-				}
-
-				if (hour > 12) {
-					hour = 0;
-				}
+				updateTime();
 
 				String currentTime = String.format("%02d : %02d : %02d [%d]", hour, minute, second, elapsedTime++);
 				System.out.println(currentTime);
@@ -79,14 +105,6 @@ public class DisplayTimmer implements Runnable {
 			}
 
 		}
-	}
-
-	public int getStartTime() {
-		return startTime;
-	}
-
-	public void setStartTime(int startTime) {
-		this.startTime = startTime;
 	}
 
 }
