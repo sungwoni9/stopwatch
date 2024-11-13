@@ -1,6 +1,10 @@
 package stopwatch;
 
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 public class Stopwatch extends Thread {
 
@@ -9,11 +13,15 @@ public class Stopwatch extends Thread {
 
 	private boolean running;
 	private boolean paused;
-	private int startTime;
-	private int elapsedTime;
+
+	private BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
+	private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 	public static Stopwatch getInstance() {
-		instance = new Stopwatch();
+		if (instance == null) {
+			instance = new Stopwatch();
+			instance.displayTimer = new DisplayTimer();
+		}
 		return instance;
 	}
 
@@ -21,23 +29,32 @@ public class Stopwatch extends Thread {
 	public void run() {
 		running = true;
 		paused = false;
-		displayTimer.start();
-		Scanner scanner = new Scanner(System.in);
 
-		System.err.println("[q]STOP\n[h]HOLD\n[*]RERUN");
+		try {
+			System.err.println("[q]STOP\n[h]HOLD\n[*]RERUN\n");
 
-		while (running) {
-			if (!paused) {
-			}
+			displayTimer.start();
 
-			try {
+			while (running) {
+				if (!paused) {
+
+				}
+				if (reader.ready()) {
+					String input = reader.readLine();
+					handleInput(input);
+				}
 				Thread.sleep(1000);
-			} catch (InterruptedException e) {
+			}
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				writer.close();
+				reader.close();
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-
-		scanner.close();
 	}
 
 	private void handleInput(String input) {
@@ -60,52 +77,36 @@ public class Stopwatch extends Thread {
 	private void stopTimer() {
 		running = false;
 		displayTimer.stopTimer();
-		System.out.println("Stopwatch stopped.");
+		try {
+			writer.write("~~~~ Time Over ~~~~\n");
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private void pauseTimer() {
 		paused = true;
-		System.out.println("Stopwatch paused.");
-	}
-
-	private void resumeTimer() {
-		if (paused) {
-			paused = false;
-			setStartTime((int) System.currentTimeMillis() - elapsedTime * 1000);
-			System.out.println("Stopwatch resumed.");
+		displayTimer.stopTimer();
+		DisplayTimer.saveTime();
+		try {
+			writer.write("~~~~ 정지 ~~~~\n");
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
-	private void pause() {
-
-	}
-
-	public void setInstance(Stopwatch instance) {
-		this.instance = instance;
-	}
-
-	public int getStartTime() {
-		return startTime;
-	}
-
-	public void setStartTime(int startTime) {
-		this.startTime = startTime;
-	}
-
-	public int getElapsedTime() {
-		return elapsedTime;
-	}
-
-	public void setElapsedTime(int elapsedTime) {
-		this.elapsedTime = elapsedTime;
-	}
-
-	public DisplayTimer getDisplayTimer() {
-		return displayTimer;
-	}
-
-	public void setDisplayTimmer(DisplayTimer displayTimer) {
-		this.displayTimer = displayTimer;
+	private void resumeTimer() {
+		paused = false;
+		DisplayTimer.restoreTime();
+		try {
+			writer.write("~~~~ 재생 ~~~~\n");
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
