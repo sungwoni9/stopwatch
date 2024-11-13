@@ -8,105 +8,120 @@ import java.io.OutputStreamWriter;
 
 public class Stopwatch extends Thread {
 
-	private DisplayTimer displayTimer;
-	private static Stopwatch instance;
+    private DisplayTimer displayTimer;
 
-	private boolean running;
-	private boolean paused;
+    private boolean running;
+    private boolean paused;
 
-	private BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
-	private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    private static Stopwatch instance;
+    private static StringBuilder buffer = new StringBuilder();
+    private static BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
+    private static BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-	public static Stopwatch getInstance() {
-		if (instance == null) {
-			instance = new Stopwatch();
-			instance.displayTimer = new DisplayTimer();
-		}
-		return instance;
-	}
+    private Stopwatch stopwatch;
 
-	@Override
-	public void run() {
-		running = true;
-		paused = false;
+    public static Stopwatch getInstance() {
+        if (instance == null) {
+            instance = new Stopwatch();
+            instance.displayTimer = new DisplayTimer();
+        }
+        return instance;
+    }
 
-		try {
-			System.err.println("[q]STOP\n[h]HOLD\n[*]RERUN\n");
+    @Override
+    public void run() {
+        running = true;
+        paused = false;
 
-			displayTimer.start();
+        try {
+            displayTimer.start();
 
-			while (running) {
-				if (!paused) {
+            buffer.append("[q]STOP\n[h]HOLD\n[*]RERUN\n");
+            writer.append(buffer);
+            buffer.setLength(0);
+            writer.flush();
 
-				}
-				if (reader.ready()) {
-					String input = reader.readLine();
-					handleInput(input);
-				}
-				Thread.sleep(1000);
-			}
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				writer.close();
-				reader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+            while (running) {
 
-	private void handleInput(String input) {
-		switch (input) {
-		case "q":
-			stopTimer();
-			break;
-		case "h":
-			pauseTimer();
-			break;
-		case "*":
-			resumeTimer();
-			break;
-		default:
-			System.out.println();
-			break;
-		}
-	}
+                if (reader.ready()) {
+                    String input = reader.readLine();
+                    handleInput(input);
+                }
 
-	private void stopTimer() {
-		running = false;
-		displayTimer.stopTimer();
-		try {
-			writer.write("~~~~ Time Over ~~~~\n");
-			writer.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+                if (!paused) {
+                    displayTimer.updateTime();
+                }
+                Thread.sleep(1000);
+            }
 
-	}
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                writer.close();
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-	private void pauseTimer() {
-		paused = true;
-		displayTimer.stopTimer();
-		DisplayTimer.saveTime();
-		try {
-			writer.write("~~~~ 정지 ~~~~\n");
-			writer.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    private void handleInput(String input) {
+        switch (input) {
+            case "q":
+                stopTimer();
+                break;
+            case "h":
+                pauseTimer();
+                break;
+            case "*":
+                resumeTimer();
+                break;
+            default:
+                System.out.println();
+                break;
+        }
+    }
 
-	private void resumeTimer() {
-		paused = false;
-		DisplayTimer.restoreTime();
-		try {
-			writer.write("~~~~ 재생 ~~~~\n");
-			writer.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    private void stopTimer() {
+        running = false;
+        displayTimer.stopTimer();
+        buffer.append("~~~~ Time Over ~~~~\n");
+        try {
+            writer.append("소요시간 종료\n");
+            buffer.setLength(0);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    private void pauseTimer() {
+        paused = true;
+        buffer.append("~~~~ 정지 ~~~~\n");
+        try {
+            writer.append(buffer);
+            buffer.setLength(0);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void resumeTimer() {
+        paused = false;
+        buffer.append("~~~~ 재생 ~~~~\n");
+        try {
+            writer.append(buffer);
+            buffer.setLength(0);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        Stopwatch stopwatch = Stopwatch.getInstance();
+        stopwatch.start();
+    }
 }
