@@ -7,62 +7,67 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-public class DisplayTimmer implements Runnable {
+public class DisplayTimer extends Thread {
 
-	private static int elapsedTime;
-	private static int minute;
-	private static int second;
-	private static int hour;
+	private  int elapsedTime;
+	private  int minute;
+	private  int second;
+	private  int hour;
+	private boolean running;
 
-	private static Calendar cal = Calendar.getInstance();
-	private static TimeZone tz = TimeZone.getTimeZone("Asia/Seoul");
-	private static SimpleDateFormat sdf = new SimpleDateFormat("HH : mm : ss");
+	private Calendar cal = Calendar.getInstance();
+	private TimeZone tz = TimeZone.getTimeZone("Asia/Seoul");
+	private SimpleDateFormat sdf = new SimpleDateFormat("HH : mm : ss");
 
 	BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out));
 
-	public DisplayTimmer() {
-		elapsedTime = 1;
-		sdf.setTimeZone(tz);
-		minute = cal.get(Calendar.MINUTE);
-		second = cal.get(Calendar.SECOND);
-		hour = cal.get(Calendar.HOUR);
+	public DisplayTimer() {
+		elapsedTime = 0;
+		minute = 0;
+		second = 0;
+		hour = 0;
+		running = true;
 	}
 
 	public void start() {
 		run();
 	}
 
-	public static DisplayTimmer getInstance() {
-		DisplayTimmer instance = new DisplayTimmer();
+	public void stopTimer() {
+		running = false;
+	}
+
+	public DisplayTimer getInstance() {
+		DisplayTimer instance = new DisplayTimer();
 		return instance;
 
 	}
 
-	public static int getSecond() {
+	public int getSecond() {
 		return second;
 	}
 
-	public static void setSecond(int second) {
-		DisplayTimmer.second = second;
+	public void setSecond(int second) {
+		DisplayTimer.second = second;
 	}
 
-	public static int getMinute() {
+	public int getMinute() {
 		return minute;
 	}
 
-	public static void setMinute(int minute) {
-		DisplayTimmer.minute = minute;
+	public void setMinute(int minute) {
+		DisplayTimer.minute = minute;
 	}
 
-	public static int getHour() {
+	public int getHour() {
 		return hour;
 	}
 
-	public static void setHour(int hour) {
-		DisplayTimmer.hour = hour;
+	public void setHour(int hour) {
+		DisplayTimer.hour = hour;
 	}
 
-	public static void updateTime() {
+	public void updateTime() {
 		second++;
 
 		if (second > 59) {
@@ -79,18 +84,16 @@ public class DisplayTimmer implements Runnable {
 			hour = 0;
 		}
 	}
-
+	
+	@Override
 	public void run() {
-
 		try {
 			while (true) {
 				updateTime();
 
 				String currentTime = String.format("%02d : %02d : %02d [%d]", hour, minute, second, elapsedTime++);
 				System.out.println(currentTime);
-
 				writer.flush();
-
 				Thread.sleep(1000);
 			}
 
